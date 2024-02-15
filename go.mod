@@ -1,4 +1,4 @@
-module github.com/sidney-cardoso/curso-go/9-API
+module github.com/sidney-cardoso/ecommerce-GO
 
 go 1.22.0
 
