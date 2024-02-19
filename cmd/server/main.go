@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -45,6 +46,11 @@ func main() {
 	}
 
 	db.AutoMigrate(&entity.User{}, &entity.Product{})
+	productDB := database.NewProduct(db)
+	productHandler := NewProductHandler(productDB)
+
+	http.HandleFunc("/products", productHandler.CreateProduct)
+
 	http.ListenAndServe(":8000", nil)
 }
 
@@ -63,17 +69,21 @@ func (h *ProductHandler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&product)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		fmt.Println("Erro no decode: ", err)
 		return
 	}
 	p, err := entity.NewProduct(product.Name, product.Price)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		fmt.Println("Erro no NewProduct: ", err)
 		return
 	}
 	err = h.ProductDB.Create(p)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Println("Erro no create: ", err)
 		return
 	}
+	w.Write([]byte("Deu bom!"))
 	w.WriteHeader(http.StatusCreated)
 }

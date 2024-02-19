@@ -17,8 +17,8 @@ func (p *Product) Create(product *entity.Product) error {
 	return p.DB.Create(product).Error
 }
 
-func (p *Product) FindAll(page, limit int, sort string) ([]entity.Product, error) {
-	var products []entity.Product
+func (p *Product) FindAll(page, limit int, sort string) ([]*entity.Product, error) {
+	var products []*entity.Product
 	var err error
 	if sort != "" && sort != "asc" && sort != "desc" {
 		sort = "asc"
