@@ -1,8 +1,6 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -13,9 +11,9 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
-	"github.com/sidney-cardoso/ecommerce-GO/internal/dto"
 	"github.com/sidney-cardoso/ecommerce-GO/internal/entity"
 	"github.com/sidney-cardoso/ecommerce-GO/internal/infra/database"
+	"github.com/sidney-cardoso/ecommerce-GO/internal/infra/webserver/handlers"
 )
 
 var baseDir string
@@ -47,43 +45,9 @@ func main() {
 
 	db.AutoMigrate(&entity.User{}, &entity.Product{})
 	productDB := database.NewProduct(db)
-	productHandler := NewProductHandler(productDB)
+	productHandler := handlers.NewProductHandler(productDB)
 
 	http.HandleFunc("/products", productHandler.CreateProduct)
 
 	http.ListenAndServe(":8000", nil)
-}
-
-type ProductHandler struct {
-	ProductDB database.ProductInterface
-}
-
-func NewProductHandler(db database.ProductInterface) *ProductHandler {
-	return &ProductHandler{
-		ProductDB: db,
-	}
-}
-
-func (h *ProductHandler) CreateProduct(w http.ResponseWriter, r *http.Request) {
-	var product dto.CreateProductInput
-	err := json.NewDecoder(r.Body).Decode(&product)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Println("Erro no decode: ", err)
-		return
-	}
-	p, err := entity.NewProduct(product.Name, product.Price)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Println("Erro no NewProduct: ", err)
-		return
-	}
-	err = h.ProductDB.Create(p)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Println("Erro no create: ", err)
-		return
-	}
-	w.Write([]byte("Deu bom!"))
-	w.WriteHeader(http.StatusCreated)
 }
